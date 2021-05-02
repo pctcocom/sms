@@ -1,0 +1,34 @@
+{
+    "name": "pctco/sms",
+    "type": "project",
+    "keywords": ["Aliyun Sms","BaiDu Cloud Sms","Tencent Cloud Sms","Sms Api"],
+    "homepage": "https://pctco.com",
+    "license": "MIT",
+    "description": "Mobile SMS api of major platforms!",
+    "authors": [
+        {
+            "name": "pctco",
+            "email": "pctco.com@gmail.com",
+            "homepage": "https://pctco.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "pctco.com@gmail.com",
+        "issues": "https://github.com/pctcocom/sms/issues",
+        "forum": "https://pctco.com",
+        "source": "https://github.com/pctcocom/sms"
+    },
+    "require": {
+        "php": ">=7.1"
+    },
+    "suggest": {
+        "ext-event": "Mobile SMS api of major platforms!"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pctco\\Sms\\": "src"
+        }
+    },
+    "minimum-stability": "dev"
+}
