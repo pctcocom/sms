@@ -5,30 +5,14 @@ use think\facade\Cache;
 use AlibabaCloud\Client\AlibabaCloud;
 use AlibabaCloud\Client\Exception\ClientException;
 use AlibabaCloud\Client\Exception\ServerException;
-use Nahid\JsonQ\Jsonq;
-class Sms{
+class Aliyun{
    private $config;
    /**
    * @access 配置
    * @return
    **/
-   function __construct(){
-      $this->config = [
-         'accessKeyId'   =>   'LTAI4FjgS1Vmxywzbk8YLu87',
-         'accessKeySecret'   =>   'oKdJ5Ypj8qIyuMu0Vg3HYtQlUCsVPn',
-         'cycle'   =>   300,
-         'length'   =>   6,
-         'sign'   =>   '大鱼测试',
-         'regionId'   =>   'cn-hangzhou',
-         '01'   =>   'SMS_16686167', // 身份验证验证码
-         '02'   =>   'SMS_16686166', // 短信测试
-         '03'   =>   'SMS_16686165', // 登录确认验证码
-         '04'   =>   'SMS_16686164', // 登录异常验证码
-         '05'   =>   'SMS_16686163', // 用户注册验证码
-         '06'   =>   'SMS_16686162', // 活动确认验证码
-         '07'   =>   'SMS_16686161', // 修改密码验证码
-         '08'   =>   'SMS_16686160', // 信息变更验证码
-      ];
+   function __construct($config){
+      $this->config = $config;
    }
    /**
    * @access 发送短信
@@ -36,42 +20,17 @@ class Sms{
    * @param mixed    $phone      手机号码
    * @param mixed    $template   模版 根据后台  应用编号填写 04 = SMS_172575229
    * @param mixed    $product    产品名称
-   * @example        Sms::send('86','13677777777','04');
    * @return array
    **/
    public function send($itac,$phone,$template,$product = ''){
-      $length = $this->config['length'];
-      $cycle = $this->config['cycle'];
-      $sign = $this->config['sign'];
-      $smsTplId = $this->config[$template];
-      if ($length == 4) {
-         $code = rand(1000, 9999);
-      }
-      if ($length == 6) {
-         $code = rand(100000, 999999);
-      }
+      // return $this->config;
       $result =
-      $this->SendSms($phone,$sign,$smsTplId,'{"code":"'.$code.'","product":"'.$product.'"}');
+      $this->SendSms($phone,$this->config['config.sms.sign'],$this->config['config.sms.config']['template'][$itac][$template]['code'],'{"code":"'.$this->config['config.sms.code'].'","product":"'.$product.'"}');
       if (!empty($result['Message'])) {
          $status = $result['Message'] == 'OK' ? true : false ;
          if($status){
-            // Db::name('check_sms')->insert([
-            //    'itac'     =>  $itac,
-            //    'phone'    =>  $phone,
-            //    'template' =>  $template,
-            //    'code'     =>  $code,
-            //    'time'     =>  time()
-            // ]);
-            $minute = ((int)$cycle)/60;
-            return [
-                'status'=>'success',
-                'content'=>'短信发送成功，短信有效期为 '.$minute.' 分钟',
-                // 短信实际有效时间(分钟)
-                'minute'   =>   $minute,
-                'second'   =>   60,  // 倒计时秒数
-                'len'      =>   $length,
-                'url'=>'openSms',
-            ];
+            $processor = new Processor();
+            return $processor->success($itac,$phone,$template);
          }else{
             $isv = [
                'isv.SMS_SIGNATURE_SCENE_ILLEGAL'   =>   '签名的适用场景与短信类型不匹配。',
@@ -115,69 +74,17 @@ class Sms{
             ];
 
             return [
-                'status'=>'info',
-                'content'=>empty($isv[$result['Code']])?'ERROR':$isv[$result['Code']],
-                'url'=>'static',
-                'field'   =>   'cellphone_num'
+               'headers' => 'Prompt info',
+               'status'=>'info',
+               'content'=>empty($isv[$result['Code']])?'ERROR':$isv[$result['Code']]
             ];
          };
       }
       return json([
-          'status'=>'error',
-          'prompt'=>'获取验证码失败',
-          'url'=>'static',
-          'field'   =>   'cellphone_num'
+         'headers' => 'Prompt info',
+         'status'=>'error',
+         'content'=>'获取验证码失败'
       ]);
-   }
-   /**
-   * @access 判断发送验证码是否正确
-   * @param mixed    $itac   国际电话号码区号
-   * @param mixed    $phone  手机号码
-   * @param mixed    $template 短信模板  01,02,03
-   * @param mixed    $code 短信验证码
-   * @return
-   **/
-   public function isSendCode($itac,$phone,$template,$code){
-      $cycle = $this->config['cycle'];
-      $sms =
-      Db::name('check_sms')
-      ->order('time desc')
-      ->field('code,time')
-      ->where([
-         'itac'     =>  $itac,
-         'phone'    =>  $phone,
-         'template' =>  $template
-      ])->find();
-      if ($sms['time'] < (time() - $cycle)) {
-         return json([
-             'status'=>'info',
-             'prompt'=>'当前验证代码已过期。请重新获取验证码！',
-             'url'=>'static',
-             'field'   =>  ''
-         ]);
-      }
-      if ($sms['code'] != $code) {
-         return json([
-             'status'=>'info',
-             'prompt'=>'验证码不正确。请重新进入！',
-             'url'=>'static',
-             'field'   =>  ''
-         ]);
-      }
-      $sms =
-      Db::name('check_sms')
-      ->order('time desc')
-      ->where([
-         'itac'     =>  $itac,
-         'phone'    =>  $phone,
-         'template' =>  $template
-      ])->delete();
-
-      Db::name('check_sms')
-      ->where('time','<',time() - $cycle)
-      ->delete();
-
-      return true;
    }
 
 
@@ -204,12 +111,11 @@ class Sms{
       $TemplateCode,
       $TemplateParam
    ){
-      $accessKeyId = trim($this->config['accessKeyId']);
-      $accessKeySecret = trim($this->config['accessKeySecret']);
+      $accessKeyId = trim($this->config['config.sms.config']['access']['accessKeyId']);
+      $accessKeySecret = trim($this->config['config.sms.config']['access']['accessKeySecret']);
       AlibabaCloud::accessKeyClient($accessKeyId,$accessKeySecret)
-      ->regionId($this->config['regionId'])
+      ->regionId($this->config['config.sms.config']['access']['regionId'])
       ->asDefaultClient();
-
       try {
          $result =
          AlibabaCloud::rpc()
@@ -220,7 +126,7 @@ class Sms{
          ->host('dysmsapi.aliyuncs.com')
          ->options([
             'query' => [
-               'RegionId' => $this->config['regionId'],
+               'RegionId' => $this->config['config.sms.config']['access']['regionId'],
                'PhoneNumbers' => $PhoneNumbers,
                'SignName' => $SignName,
                'TemplateCode' => $TemplateCode,
