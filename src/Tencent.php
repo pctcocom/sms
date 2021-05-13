@@ -41,16 +41,17 @@ class Tencent{
          $resp = $client->SendSms($req);
 
          $resp = json_decode($resp->toJsonString(),true);
+         $processor = new Processor();
          if ($resp['SendStatusSet'][0]['Code'] == 'Ok') {
-            $processor = new Processor();
             return $processor->success($itac,$phone,$template);
          }
-         return json([
+
+         return [
              'headers' => 'Prompt info',
-             'status'=>'error',
-             'content'=>$resp['SendStatusSet'][0]['Message'],
-             'sub' => 'Please do not send SMS messages to anyone!'
-         ]);
+             'status'=>'info',
+             'content'=>   $resp['SendStatusSet'][0]['Message'],
+             'sub' => $processor->ErrorCode($resp['SendStatusSet'][0]['Code'])
+         ];
       }
       catch(TencentCloudSDKException $e) {
           return $e;
