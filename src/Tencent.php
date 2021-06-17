@@ -17,7 +17,7 @@ class Tencent{
    function __construct($config){
       $this->config = $config;
    }
-   public function send($itac,$phone,$template,$product = ''){
+   public function send($itac,$phone,$template,$abridge,$product = ''){
       try {
          $cred = new Credential($this->config['config.sms.config']['access']['accessKeyId'],$this->config['config.sms.config']['access']['accessKeySecret']);
          $httpProfile = new HttpProfile();
@@ -31,8 +31,8 @@ class Tencent{
 
          $params = array(
             'PhoneNumberSet'   =>   [$itac.$phone],
-            'TemplateID'   =>   $this->config['config.sms.config']['template'][$itac][$template]['code'],
-            'Sign'   =>   $this->config['config.sms.sign'],
+            'TemplateID'   =>   $this->config['config.sms.config']['template'][$abridge][$template]['code'],
+            'Sign'   =>   $this->config['sms']['sign'],
             'TemplateParamSet'   =>   [$this->config['config.sms.code']],
             'SmsSdkAppid'   =>   $this->config['config.sms.config']['access']['SmsSdkAppid']
          );

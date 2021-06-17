@@ -19,13 +19,14 @@ class Aliyun{
    * @param mixed    $itac       国际电话区号
    * @param mixed    $phone      手机号码
    * @param mixed    $template   模版 根据后台  应用编号填写 04 = SMS_172575229
+   * @param mixed    $abridge   US、CN
    * @param mixed    $product    产品名称
    * @return array
    **/
-   public function send($itac,$phone,$template,$product = ''){
+   public function send($itac,$phone,$template,$abridge,$product = ''){
       // return $this->config;
       $result =
-      $this->SendSms($phone,$this->config['config.sms.sign'],$this->config['config.sms.config']['template'][$itac][$template]['code'],'{"code":"'.$this->config['config.sms.code'].'","product":"'.$product.'"}');
+      $this->SendSms($phone,$this->config['sms']['sign'],$this->config['config.sms.config']['template'][$abridge][$template]['code'],'{"code":"'.$this->config['config.sms.code'].'","product":"'.$product.'"}');
       if (!empty($result['Message'])) {
          $status = $result['Message'] == 'OK' ? true : false ;
          $processor = new Processor();

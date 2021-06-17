@@ -13,10 +13,10 @@ class BaiDu{
          'base_uri' => $this->config['config.sms.config']['access']['domain']
       ]);
    }
-   public function send($itac,$phone,$template,$product = ''){
+   public function send($itac,$phone,$template,$abridge,$product = ''){
       $proxy = $this->client->request('POST','/api/v3/sendSms',[
          'mobile' => $phone,
-         'template'   =>   $this->config['config.sms.config']['template'][$itac][$template]['code'],
+         'template'   =>   $this->config['config.sms.config']['template'][$abridge][$template]['code'],
          'signatureId'   =>   $this->config['config.sms.config']['access']['signatureId'],
          'contentVar'   =>   '{"param1":"123","param2":"abc"}'
       ]);
