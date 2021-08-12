@@ -31,7 +31,7 @@ class Aliyun{
          $status = $result['Message'] == 'OK' ? true : false ;
          $processor = new Processor();
          if($status){
-            return $processor->success($itac,$phone,$template);
+            return $processor->success($itac,$phone,$template,$this->config['config.sms.code']);
          }else{
             return [
                'headers' => 'Prompt info',

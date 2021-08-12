@@ -43,7 +43,7 @@ class Tencent{
          $resp = json_decode($resp->toJsonString(),true);
          $processor = new Processor();
          if ($resp['SendStatusSet'][0]['Code'] == 'Ok') {
-            return $processor->success($itac,$phone,$template);
+            return $processor->success($itac,$phone,$template,$this->config['config.sms.code']);
          }
 
          return [

@@ -2,6 +2,7 @@
 namespace Pctco\Sms;
 use think\facade\Db;
 use think\facade\Cache;
+use app\model\User;
 use AlibabaCloud\Client\AlibabaCloud;
 use AlibabaCloud\Client\Exception\ClientException;
 use AlibabaCloud\Client\Exception\ServerException;
@@ -67,6 +68,17 @@ class Processor{
    * @return array
    **/
    public function send($itac,$phone,$template,$abridge,$product = ''){
+      if (User::where([
+         'itac'   =>   $itac,
+         'phone'   =>   $phone
+      ])->count()) {
+         return [
+            'headers' => 'Prompt info',
+            'status'=>'info',
+            'content'=>'手机号已存在',
+            'sub' => '您当前手机号已被注册'
+         ];
+      }
       return $this->client->send($itac,$phone,$template,$abridge,$product = '');
    }
    /**
@@ -84,6 +96,7 @@ class Processor{
          'n1'     =>  (int)$data['countries']['itac'],
          'n2'    =>  $data['phone'],
          'n3' =>  $data['countries']['template'],
+         'n4' =>  $data['code'],
          'type'   =>   'sms'
       ];
 
@@ -99,39 +112,44 @@ class Processor{
       ->field('n4,time')
       ->where($where)->find();
       if (empty($sms)) {
-         return json([
+         return [
             'headers' => 'Prompt info',
             'status'=>'info',
-            'content'=>'验证码已失效',
-            'sub' => '当前验证代码已过期。请重新获取验证码！'
-         ]);
+            'content'=>'手机验证码错误',
+            'sub' => '验证码不正确。请重新填写！'
+         ];
       }
-      if ($sms['n4'] != $data['sms']) {
-         return json([
+      if ($sms['n4'] != $data['code']) {
+         return [
             'headers' => 'Prompt info',
             'status'=>'info',
-            'content'=>'验证码错误',
-            'sub' => '验证码不正确。请重新进入！'
-         ]);
+            'content'=>'手机验证码错误',
+            'sub' => '验证码不正确。请重新填写！'
+         ];
       }
 
       Db::name('temporary')
       ->order('time desc')
       ->where($where)->delete();
 
-      return true;
+      return [
+         'headers' => 'Prompt info',
+         'status'=>'success',
+         'content'=>'手机验证码成功',
+         'sub' => '手机号码验证成功'
+      ];
    }
    /**
    * @name success
    * @describe 发送成功
    * @return Array
    **/
-   public function success($itac,$phone,$template){
+   public function success($itac,$phone,$template,$code){
       Db::name('temporary')->insert([
          'n1'     =>  (int)$itac,
          'n2'    =>  $phone,
          'n3' =>  $template,
-         'n4'     =>  $this->config['config.sms.code'],
+         'n4'     => $code,
          'type'   =>   'sms',
          'time'     =>  time()
       ]);
