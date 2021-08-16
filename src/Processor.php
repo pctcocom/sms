@@ -128,10 +128,6 @@ class Processor{
          ];
       }
 
-      Db::name('temporary')
-      ->order('time desc')
-      ->where($where)->delete();
-
       return [
          'headers' => 'Prompt info',
          'status'=>'success',
