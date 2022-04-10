@@ -34,16 +34,16 @@ class Aliyun{
             return $processor->success($itac,$phone,$template,$this->config['config.sms.code']);
          }else{
             return [
-               'headers' => 'Prompt info',
-               'status'=>'info',
-               'content'=>$processor->ErrorCode($result['Code'])
+               'status'=>  'danger',
+               'tips'   => 'Danger '.$result['Code'],
+               'message'   => $processor->ErrorCode($result['Code'])
             ];
          };
       }
       return [
-         'headers' => 'Prompt info',
-         'status'=>'info',
-         'content'=>'获取验证码失败'
+         'status' => 'warning',
+         'tips'   => 'Warning',
+         'message'   => '获取验证码失败'
       ];
    }
    /*

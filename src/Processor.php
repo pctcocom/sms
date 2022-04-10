@@ -64,21 +64,9 @@ class Processor{
    * @param mixed    $template   模版 根据后台  应用编号填写 04 = SMS_172575229
    * @param mixed    $abridge   US、CN
    * @param mixed    $product    产品名称
-   * @example        Sms::send('86','13677777777','04');
    * @return array
    **/
    public function send($itac,$phone,$template,$abridge,$product = ''){
-      if (User::where([
-         'itac'   =>   $itac,
-         'phone'   =>   $phone
-      ])->count()) {
-         return [
-            'headers' => 'Prompt info',
-            'status'=>'info',
-            'content'=>'手机号已存在',
-            'sub' => '您当前手机号已被注册'
-         ];
-      }
       return $this->client->send($itac,$phone,$template,$abridge,$product = '');
    }
    /**
@@ -113,26 +101,23 @@ class Processor{
       ->where($where)->find();
       if (empty($sms)) {
          return [
-            'headers' => 'Prompt info',
             'status'=>'info',
-            'content'=>'手机验证码错误',
-            'sub' => '验证码不正确。请重新填写！'
+            'tips'=>'手机验证码错误',
+            'message' => '验证码不正确。请重新填写！'
          ];
       }
       if ($sms['n4'] != $data['code']) {
          return [
-            'headers' => 'Prompt info',
             'status'=>'info',
-            'content'=>'手机验证码错误',
-            'sub' => '验证码不正确。请重新填写！'
+            'tips'=>'手机验证码错误',
+            'message' => '验证码不正确。请重新填写！'
          ];
       }
 
       return [
-         'headers' => 'Prompt info',
          'status'=>'success',
-         'content'=>'手机验证码成功',
-         'sub' => '手机号码验证成功'
+         'tips'=>'手机验证码成功',
+         'message' => '手机号码验证成功'
       ];
    }
    /**
@@ -150,14 +135,13 @@ class Processor{
          'time'     =>  time()
       ]);
       return [
-         'headers' => 'Prompt info',
-         'status'=>'success',
-         'content'=>'短信发送成功，短信有效期为 '.$this->config['config.sms.minute'].' 分钟',
-         'sub' => 'Please do not send SMS messages to anyone!',
+         'status' => 'success',
+         'tips'   => '短信发送成功，短信有效期为 '.$this->config['config.sms.minute'].' 分钟',
+         'message' => 'Please do not send SMS messages to anyone!',
          // 短信实际有效时间(分钟)
          'minute'   =>   $this->config['config.sms.minute'],
          'second'   =>   60,  // 倒计时秒数
-         'length'      =>   $this->config['sms']['length']
+         'length' =>   $this->config['sms']['length']
       ];
    }
 

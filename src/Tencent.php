@@ -47,10 +47,9 @@ class Tencent{
          }
 
          return [
-             'headers' => 'Prompt info',
-             'status'=>'info',
-             'content'=>   $resp['SendStatusSet'][0]['Message'],
-             'sub' => $processor->ErrorCode($resp['SendStatusSet'][0]['Code'])
+            'status'=>'danger',
+            'tips'=>   $resp['SendStatusSet'][0]['Message'],
+            'message' => $processor->ErrorCode($resp['SendStatusSet'][0]['Code'])
          ];
       }
       catch(TencentCloudSDKException $e) {
