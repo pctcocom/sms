@@ -81,9 +81,9 @@ class Processor{
       $cycle = (int)$this->config['sms']['cycle'];
 
       $where = [
-         'n1'     =>  (int)$data['countries']['itac'],
+         'n1'     =>  (int)$data['itac'],
          'n2'    =>  $data['phone'],
-         'n3' =>  $data['countries']['template'],
+         'n3' =>  $data['template'],
          'n4' =>  $data['code'],
          'type'   =>   'sms'
       ];
